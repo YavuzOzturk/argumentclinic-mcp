@@ -1,0 +1,63 @@
+# ArgumentClinic Configuration
+# Copy to ~/.config/argumentclinic/config.yaml
+
+# Mode: base (use manual role config) or pro (use ArgumentClinic API routing)
+mode: base
+
+# ArgumentClinic API key (Pro mode only)
+# ag_api_key: your-key-here
+
+# Provider configurations
+providers:
+  openai:
+    api_key: sk-your-openai-key
+
+  anthropic:
+    api_key: sk-ant-your-anthropic-key
+
+  deepseek:
+    api_key: your-deepseek-key
+
+  gemini:
+    api_key: your-gemini-key
+
+  grok:
+    api_key: your-grok-key
+
+  # Local Ollama instance (no auth needed)
+  ollama:
+    connector:
+      url: http://localhost:11434/api/generate
+      auth:
+        type: none
+      request_template: '{"model":"{{model}}","prompt":"{{system}}\n\n{{prompt}}","stream":false}'
+      response_path: response
+
+  # IBM Granite or any custom endpoint
+  custom:
+    connector:
+      url: https://your-endpoint.com/v1/generate
+      auth:
+        type: bearer
+        token: your-token
+      request_template: '{"model":"{{model}}","input":"{{system}}\n\n{{prompt}}"}'
+      response_path: results[0].generated_text
+
+# Role assignments (base mode)
+# Each role can use a different provider and model
+roles:
+  attacker:
+    provider: openai
+    model: gpt-4o-mini
+
+  defender:
+    provider: openai
+    model: gpt-4o-mini
+
+  judge:
+    provider: openai
+    model: gpt-4o-mini
+
+  synthesizer:
+    provider: openai
+    model: gpt-4o-mini
