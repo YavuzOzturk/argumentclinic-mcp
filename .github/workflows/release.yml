@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary_name: argumentclinic
+            asset_name: argumentclinic-linux-x86_64
+
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary_name: argumentclinic.exe
+            asset_name: argumentclinic-windows-x86_64.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+          
+      - name: Install SQLite (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get install -y libsqlite3-dev
+      
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Rename binary (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          mv target/${{ matrix.target }}/release/${{ matrix.binary_name }} \
+             ${{ matrix.asset_name }}
+
+      - name: Rename binary (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mv target/${{ matrix.target }}/release/${{ matrix.binary_name }} `
+             ${{ matrix.asset_name }}
+
+      - name: Upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
